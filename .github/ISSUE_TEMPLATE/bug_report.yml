@@ -1,0 +1,76 @@
+name: Bug report
+description: Something does not work as documented.
+labels: ["type: bug", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        - **Security problem?** Do not use this form. Follow the [security policy](https://github.com/luminare-dev/.github/blob/main/SECURITY.md).
+        - **Question or idea?** Please use [Discussions](https://github.com/orgs/luminare-dev/discussions).
+        - **Everything you write here is public.** Replace secrets, tokens, licence keys, IP addresses, hostnames and player or user data with placeholders such as `<redacted>`.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem. Include the exact error message, if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps, commands or configuration that shows the problem.
+      placeholder: |
+        1. Use this configuration: ...
+        2. Run: ...
+        3. See the error: ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Project version
+      description: The release, tag or commit you use.
+      placeholder: "e.g. v0.3.1"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and the versions of the tools named in the README.
+      placeholder: |
+        - OS: Debian 13
+        - Python: 3.12.3
+        - Other tools: ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Paste only the relevant part, redacted. It is formatted as code automatically.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the open and closed issues and found no report of this bug.
+          required: true
+        - label: I can reproduce the problem with the latest release.
+          required: false
+        - label: I removed all secrets, tokens, licence keys, IPs and player data.
+          required: true
+        - label: I agree to follow the [Code of Conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md).
+          required: true

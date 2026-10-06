@@ -1,0 +1,24 @@
+luminare-dev/.github (community health files and organization profile)
+Copyright 2026 {{AUTHOR_NAME}}
+
+The source code and documentation in this repository are licensed under
+MIT (see the LICENSE file), with the exceptions below.
+
+The names "Luminare Development" and "Luminare", the Luminare logo and mark,
+the name and logo of this project, the README header images, the social
+preview image and all files in docs/brand/ are not licensed under MIT
+or under any other licence in this repository. No permission is granted to
+use them, except as required for reasonable and customary use in describing
+the origin of the work and reproducing the content of this NOTICE file.
+
+The images in docs/brand/ contain text set in the Sora typeface, converted to
+outlines. Sora is Copyright 2019 The Sora Project Authors and is licensed
+under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
+The font keeps its own licence.
+
+CODE_OF_CONDUCT.md is not licensed under MIT. It is adapted from the
+Contributor Covenant, version 3.0
+(https://www.contributor-covenant.org/version/3/0/), which is stewarded by
+the Organization for Ethical Source and licensed under CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/). The adapted file keeps
+that licence. The changes are listed at the end of the file.

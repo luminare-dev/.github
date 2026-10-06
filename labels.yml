@@ -1,0 +1,105 @@
+# Shared triage labels for every repository in luminare-dev.
+#
+# Synced by scripts/sync_labels.py (dry run by default; see README.md). The issue forms in
+# .github/ISSUE_TEMPLATE set "type: bug", "type: feature" and "status: triage", so these labels
+# must exist in every repository that uses the forms, including this one.
+#
+# Format (a deliberately small YAML subset, so the sync script needs only the Python standard
+# library): a top-level "labels:" list; each item has name, color (6 hex digits, no "#"),
+# description (at most 100 characters) and optional aliases (old names that are renamed to
+# "name" instead of creating a duplicate; this keeps the label on existing issues).
+#
+# Colours: brand tokens (palette/tokens.json of the brand kit) for type and status labels;
+# GitHub's own label colours where the brand has no fitting hue (priority heat scale, the two
+# labels GitHub promotes on its "contribute" pages). The product-line colours are not used.
+
+labels:
+  # Type: what kind of work it is.
+  - name: "type: bug"
+    color: "1F47C4"   # Royal
+    description: "Something does not work as documented"
+    aliases: ["bug"]
+  - name: "type: feature"
+    color: "2B8FF0"   # Sky
+    description: "New feature or change in behaviour"
+    aliases: ["enhancement"]
+  - name: "type: docs"
+    color: "5BDFFF"   # Lumen
+    description: "Documentation only"
+    aliases: ["documentation"]
+  - name: "type: maintenance"
+    color: "2D63DE"   # Azure
+    description: "Refactoring, CI, build or tooling work without a change in behaviour"
+    aliases: []
+  - name: "dependencies"
+    color: "15308A"   # Abyss
+    description: "Dependency updates (set by Dependabot)"
+    aliases: []
+
+  # Priority: how urgent it is (set by a maintainer during triage).
+  - name: "priority: critical"
+    color: "B60205"
+    description: "Breaks core functionality or data; fix before anything else"
+    aliases: []
+  - name: "priority: high"
+    color: "D93F0B"
+    description: "Important; planned for the next release"
+    aliases: []
+  - name: "priority: medium"
+    color: "FBCA04"
+    description: "Normal priority"
+    aliases: []
+  - name: "priority: low"
+    color: "0E8A16"
+    description: "Nice to have"
+    aliases: []
+
+  # Status: where it is in the workflow.
+  - name: "status: triage"
+    color: "E3E8F1"   # Slate 100
+    description: "New; not yet reviewed by a maintainer"
+    aliases: []
+  - name: "status: needs-info"
+    color: "B7C1D3"   # Slate 300
+    description: "Waiting for more information from the reporter"
+    aliases: ["question"]
+  - name: "status: confirmed"
+    color: "06F2C4"   # Mint
+    description: "Reproduced or accepted; ready to be worked on"
+    aliases: []
+  - name: "status: in progress"
+    color: "5E6B84"   # Slate 500
+    description: "Someone is working on it"
+    aliases: []
+  - name: "status: blocked"
+    color: "39445C"   # Slate 700
+    description: "Waiting on something outside this issue"
+    aliases: []
+  - name: "status: duplicate"
+    color: "F3F6FB"   # Mist
+    description: "Already reported elsewhere"
+    aliases: ["duplicate"]
+  - name: "status: wontfix"
+    color: "FFFFFF"   # White
+    description: "Will not be changed; the reason is given in a comment"
+    aliases: ["wontfix", "invalid"]
+
+  # Contributor labels (names kept exactly as GitHub expects them).
+  - name: "good first issue"
+    color: "7057FF"
+    description: "Small, well described task for a first contribution"
+    aliases: []
+  - name: "help wanted"
+    color: "008672"
+    description: "Maintainers would welcome a pull request for this"
+    aliases: []
+
+  # Release tooling (release-please creates and reads these; keep them so --prune never removes them).
+  - name: "autorelease: pending"
+    color: "0A1224"   # Night
+    description: "Release pull request not yet released (release-please)"
+    aliases: []
+  - name: "autorelease: tagged"
+    color: "0A1224"   # Night
+    description: "Release pull request that was tagged and released (release-please)"
+    aliases: []

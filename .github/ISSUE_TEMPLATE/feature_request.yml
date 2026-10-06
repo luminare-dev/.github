@@ -1,0 +1,53 @@
+name: Feature request
+description: Suggest a new feature or a change in behaviour.
+labels: ["type: feature", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. For open-ended ideas, [Discussions](https://github.com/orgs/luminare-dev/discussions) is often the better place to start.
+
+        **Everything you write here is public.** Replace secrets, tokens, licence keys, IP addresses, hostnames and player or user data with placeholders such as `<redacted>`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what stops you today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How could the project solve this? Examples of configuration or output help.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds or other tools you tried.
+    validations:
+      required: false
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you like to work on this?
+      description: Large changes are agreed in this issue before a pull request is opened.
+      options:
+        - Yes, I would like to open a pull request
+        - Maybe, with some guidance
+        - "No"
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the open and closed issues and discussions and found no similar request.
+          required: true
+        - label: I removed all secrets, tokens, licence keys, IPs and player data.
+          required: true
+        - label: I agree to follow the [Code of Conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md).
+          required: true

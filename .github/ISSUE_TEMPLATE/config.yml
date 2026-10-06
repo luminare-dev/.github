@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/orgs/luminare-dev/discussions
+    about: Ask questions, discuss ideas and share what you built. Help is public and best effort.
+  - name: Report a security vulnerability
+    url: https://github.com/luminare-dev/.github/blob/main/SECURITY.md
+    about: Never in a public issue. Use private vulnerability reporting in the repository's Security tab, as the policy describes.

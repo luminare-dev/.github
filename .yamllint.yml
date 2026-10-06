@@ -1,0 +1,11 @@
+# yamllint configuration (https://yamllint.readthedocs.io/)
+extends: default
+
+rules:
+  document-start: disable          # GitHub's form files do not use "---"
+  line-length:
+    max: 200                       # form descriptions are long single lines
+  comments:
+    min-spaces-from-content: 1
+  truthy:
+    check-keys: false

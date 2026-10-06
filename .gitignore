@@ -1,0 +1,6 @@
+# Downloaded schemas for scripts/validate.py
+.cache/
+# Python
+__pycache__/
+*.pyc
+.venv/
