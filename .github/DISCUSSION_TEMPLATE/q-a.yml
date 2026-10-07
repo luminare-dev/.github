@@ -1,0 +1,49 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask anything about using or changing a project here.
+
+        - **Security problem?** Do not post it here. Follow the [security policy](https://github.com/luminare-dev/.github/blob/main/SECURITY.md).
+        - **A bug you can reproduce?** Use the repository's **Issues** tab, form "Bug report".
+        - **Everything you write here is public.** Replace secrets, tokens, licence keys, IP addresses, hostnames and player or user data with placeholders such as `<redacted>`.
+  - type: input
+    id: project
+    attributes:
+      label: Project
+      description: The repository your question is about.
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What do you want to achieve, what did you try, and what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Versions and environment
+      description: Project version, operating system and the versions of the tools named in the README.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste only the relevant part, redacted. It is formatted as code automatically.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I read the project's README and searched the existing discussions and issues.
+          required: true
+        - label: I removed all secrets, tokens, licence keys, IPs and player data.
+          required: true
+        - label: I agree to follow the [Code of Conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md).
+          required: true

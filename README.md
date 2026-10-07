@@ -32,7 +32,9 @@ A change here therefore changes every repository that relies on the default.
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Conventional Commits, DCO sign-off, issue before a large pull request, no secrets in issues | its own `CONTRIBUTING.md` |
 | [`SECURITY.md`](SECURITY.md) | latest minor version supported; private vulnerability reporting first, <security@luminare.tech> as fallback; acknowledgement within 14 days, best effort | its own `SECURITY.md` |
 | [`SUPPORT.md`](SUPPORT.md) | public issues and Discussions only, best effort | its own `SUPPORT.md` |
+| [`ACCESSIBILITY.md`](ACCESSIBILITY.md) | accessibility aims and how to report a barrier, best effort; adds an *Accessibility* tab | its own `ACCESSIBILITY.md` |
 | [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE) | bug report and feature request forms, blank issues off, links to Discussions and the security policy | **any** file in its own `.github/ISSUE_TEMPLATE/` replaces this whole folder |
+| [`.github/DISCUSSION_TEMPLATE/`](.github/DISCUSSION_TEMPLATE) | forms for the *Q&A* and *Ideas* discussion categories, with the same redaction checkbox as the issue forms | its own `.github/DISCUSSION_TEMPLATE/` (a repository with its own Discussions) |
 | [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) | checklist: Conventional Commit title, sign-off, tests, no secrets | its own pull request template |
 | [`.github/VULNERABILITY_REPORT.yml`](.github/VULNERABILITY_REPORT.yml) | fields of the private vulnerability report form | its own `.github/VULNERABILITY_REPORT.yml` |
 | [`profile/README.md`](profile/README.md) | the organization's public profile page | — |
@@ -104,15 +106,15 @@ python3 -m venv .venv
 .venv/bin/pip install --require-hashes --only-binary=:all: -r requirements-dev.txt   # Windows: .venv\Scripts\pip ...
 .venv/bin/yamllint --strict .
 .venv/bin/zizmor --offline --min-severity=low .github/workflows
-.venv/bin/python scripts/validate.py          # forms, chooser config, ruleset against their schemas
+.venv/bin/python scripts/validate.py          # issue and discussion forms, chooser config, ruleset
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
 CI also runs markdownlint (`.markdownlint-cli2.jsonc`) and actionlint.
 
-`scripts/validate.py` downloads the SchemaStore schemas `github-issue-forms` and
-`github-issue-config` and the ruleset request schema from GitHub's OpenAPI description once into
-`.cache/schemas/` (git-ignored). Right before the first push, run
+`scripts/validate.py` downloads the SchemaStore schemas `github-issue-forms`,
+`github-issue-config` and `github-discussion` and the ruleset request schema from GitHub's OpenAPI
+description once into `.cache/schemas/` (git-ignored). Right before the first push, run
 `python3 scripts/forbidden_words.py` without `--template-mode`. This is the publish gate that CI
 runs too: it also fails while a placeholder from [PLACEHOLDERS.md](PLACEHOLDERS.md) is still open.
 Reviewed exceptions to the wording check are listed in `.forbidden-words-allow`, each with a

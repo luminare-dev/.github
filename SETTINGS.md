@@ -103,7 +103,9 @@ so the branch ruleset is imported per repository (section 3).
 
 - [ ] **Discussions** for the organization, with `.github` as the source repository, categories
       *Announcements*, *Q&A*, *Ideas* and *Show and tell*. The issue chooser and `SUPPORT.md`
-      link to `https://github.com/orgs/luminare-dev/discussions`.
+      link to `https://github.com/orgs/luminare-dev/discussions`. The forms in
+      `.github/DISCUSSION_TEMPLATE/` are named after the category slugs (`q-a.yml`, `ideas.yml`);
+      keep the default category names, or rename the files to match.
 - [ ] Install the **DCO** app (`https://github.com/apps/dco`, app ID 1861) for all repositories.
       Its check is called `DCO`.
 - [ ] No Sponsors profile for the organization, and no `FUNDING.yml` in this repository: <!-- rule-text -->
@@ -169,8 +171,8 @@ Run these once after the first push, in the organization:
 
 1. **Defaults apply.** Create an empty public test repository (README only) in `luminare-dev`.
    Insights → Community standards lists the code of conduct, contributing guide, security policy,
-   support file, issue templates and pull request template from `.github`. Licence and README
-   are per repository by design.
+   support file, issue templates and pull request template from `.github`, and the repository
+   shows an *Accessibility* tab. Licence and README are per repository by design.
 2. **Issue chooser.** *New issue* in the test repository shows *Bug report*, *Feature request*
    and the two contact links. A non-member sees no blank issue.
 3. **No Sponsor button** on any repository. <!-- rule-text -->
@@ -178,15 +180,18 @@ Run these once after the first push, in the organization:
    push: the push must be rejected by push protection. Do not bypass the block. Use a
    fine-grained personal access token with no repository access, no permissions and a 1-day
    expiry, and revoke it right after the test. A random made-up string may not be detected,
-   because GitHub tokens contain a checksum. Afterwards reset the scratch branch and delete the
-   test repository.
-5. **Private reporting.** *Security → Report a vulnerability* in the test repository (with private
+   because GitHub tokens contain a checksum. Afterwards reset the scratch branch.
+5. **Discussion forms.** *New discussion* → *Q&A* and *Ideas* in the organization's Discussions
+   show the fields from `.github/DISCUSSION_TEMPLATE/`, including the redaction checkbox.
+6. **Private reporting.** *Security → Report a vulnerability* in the test repository (with private
    reporting on) shows the fields from `.github/VULNERABILITY_REPORT.yml`.
-6. **DCO.** A test pull request with a commit without `-s` fails the `DCO` check; after
+7. **DCO.** A test pull request with a commit without `-s` fails the `DCO` check; after
    `git commit --amend -s` and a force-push to the branch, the check passes.
-7. **Ruleset.** A direct push and a force-push to `main` are both rejected.
-8. **Profile.** `https://github.com/luminare-dev` shows the header in light and dark mode, the
+8. **Ruleset.** A direct push and a force-push to `main` are both rejected.
+9. **Profile.** `https://github.com/luminare-dev` shows the header in light and dark mode, the
    project table and working links.
+
+Delete the test repository after the last test.
 
 ## 5. Role addresses
 

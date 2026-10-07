@@ -30,11 +30,13 @@ def read(rel: str) -> str:
 
 class TestLayout(unittest.TestCase):
     def test_files_sit_where_github_reads_them(self):
-        # docs.github.com "Creating a default community health file" (checked 2026-10-06):
-        # issue templates and config in .github/ISSUE_TEMPLATE; VULNERABILITY_REPORT.yml and
+        # docs.github.com "Creating a default community health file" (checked 2026-10-07):
+        # issue templates and config in .github/ISSUE_TEMPLATE; discussion category forms in
+        # .github/DISCUSSION_TEMPLATE, named after the category slug; VULNERABILITY_REPORT.yml and
         # FUNDING.yml only in .github/; the others in the root, .github/ or docs/.  (rule-text)
         # The organization profile is profile/README.md in the public .github repository.
-        for rel in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md",
+        for rel in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md", "ACCESSIBILITY.md",
+                    ".github/DISCUSSION_TEMPLATE/q-a.yml", ".github/DISCUSSION_TEMPLATE/ideas.yml",
                     ".github/ISSUE_TEMPLATE/bug_report.yml", ".github/ISSUE_TEMPLATE/feature_request.yml",
                     ".github/ISSUE_TEMPLATE/config.yml", ".github/PULL_REQUEST_TEMPLATE.md",
                     ".github/VULNERABILITY_REPORT.yml", "profile/README.md", "LICENSE", "NOTICE",
@@ -49,7 +51,8 @@ class TestLayout(unittest.TestCase):
 
     def test_one_copy_of_each_health_file(self):
         # A second copy in .github/ or docs/ would silently win or lose by precedence.
-        for name in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md", "PULL_REQUEST_TEMPLATE.md"):
+        for name in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md", "ACCESSIBILITY.md",
+                     "PULL_REQUEST_TEMPLATE.md"):
             copies = [p for p in (ROOT / name, ROOT / ".github" / name, ROOT / "docs" / name) if p.exists()]
             self.assertEqual(len(copies), 1, f"{name}: {copies}")
 
@@ -68,8 +71,11 @@ class TestCodeOfConduct(unittest.TestCase):
 
 
 class TestIssueForms(unittest.TestCase):
-    def test_every_issue_form_has_the_required_secrets_checkbox(self):
-        for form in sorted((ROOT / ".github" / "ISSUE_TEMPLATE").glob("*.yml")):
+    def test_every_issue_and_discussion_form_has_the_required_secrets_checkbox(self):
+        forms = sorted((ROOT / ".github" / "ISSUE_TEMPLATE").glob("*.yml"))
+        forms += sorted((ROOT / ".github" / "DISCUSSION_TEMPLATE").glob("*.yml"))
+        self.assertGreaterEqual(len(forms), 5)
+        for form in forms:
             if form.stem == "config":
                 continue
             text = form.read_text(encoding="utf-8")

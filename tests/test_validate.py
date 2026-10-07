@@ -24,7 +24,8 @@ except ImportError:
     HAVE_TOOLS = False
 
 HAVE_SCHEMAS = all((CACHE / n).exists() for n in
-                   ("github-issue-forms.json", "github-issue-config.json", "repo-ruleset-request.json"))
+                   ("github-issue-forms.json", "github-issue-config.json", "github-discussion.json",
+                    "repo-ruleset-request.json"))
 
 
 @unittest.skipUnless(HAVE_TOOLS and HAVE_SCHEMAS, "needs requirements-dev.txt and one run of scripts/validate.py")
@@ -38,6 +39,7 @@ class TestValidators(unittest.TestCase):
         cls.schemas = cls.v.ensure_schemas(refresh=False, offline=True)
         cls.forms = jsonschema.Draft7Validator(cls.schemas["github-issue-forms.json"])
         cls.config = jsonschema.Draft7Validator(cls.schemas["github-issue-config.json"])
+        cls.discussion = jsonschema.Draft7Validator(cls.schemas["github-discussion.json"])
         cls.ruleset = jsonschema.Draft4Validator(cls.schemas["repo-ruleset-request.json"])
 
     def load_yaml(self, rel):
@@ -46,6 +48,10 @@ class TestValidators(unittest.TestCase):
     def test_real_files_are_valid(self):
         self.assertEqual(list(self.forms.iter_errors(self.load_yaml(".github/ISSUE_TEMPLATE/bug_report.yml"))), [])
         self.assertEqual(list(self.config.iter_errors(self.load_yaml(".github/ISSUE_TEMPLATE/config.yml"))), [])
+        for rel in (".github/DISCUSSION_TEMPLATE/q-a.yml", ".github/DISCUSSION_TEMPLATE/ideas.yml"):
+            form = self.load_yaml(rel)
+            self.assertEqual(list(self.discussion.iter_errors(form)), [], rel)
+            self.assertEqual(self.v.form_rules(form, needs_secrets_checkbox=True), [], rel)
         main = json.loads((ROOT / "rulesets/main.json").read_text(encoding="utf-8"))
         self.assertEqual(list(self.ruleset.iter_errors(main)), [])
 
@@ -64,7 +70,15 @@ class TestValidators(unittest.TestCase):
             if el["type"] == "checkboxes":
                 el["attributes"]["options"] = [o for o in el["attributes"]["options"]
                                                if o["label"] != self.v.REQUIRED_CHECKBOX]
-        self.assertTrue(self.v.form_rules(form, is_issue_form=True))
+        self.assertTrue(self.v.form_rules(form, needs_secrets_checkbox=True))
+
+    def test_broken_discussion_form_fails(self):
+        form = self.load_yaml(".github/DISCUSSION_TEMPLATE/q-a.yml")
+        with_name = copy.deepcopy(form)
+        with_name["name"] = "Q&A"  # issue-form key, not allowed in a discussion category form
+        self.assertTrue(list(self.discussion.iter_errors(with_name)))
+        markdown_only = {"body": [el for el in form["body"] if el["type"] == "markdown"]}
+        self.assertTrue(self.v.form_rules(markdown_only, needs_secrets_checkbox=False))
 
     def test_broken_config_fails(self):
         cfg = self.load_yaml(".github/ISSUE_TEMPLATE/config.yml")

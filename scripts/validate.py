@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Validate the issue forms, the template chooser config and the ruleset JSON against schemas.
+"""Validate the issue and discussion forms, the chooser config and the ruleset JSON against schemas.
 
 Needs the development tools (requirements-dev.txt: jsonschema, PyYAML). Schemas are downloaded
 once into .cache/schemas/ (git-ignored) with plain HTTPS GET requests:
 
   * SchemaStore "github-issue-forms" and "github-issue-config" (the schemas editors use for
     .github/ISSUE_TEMPLATE/*.yml); the private vulnerability report form uses the same syntax;
+  * SchemaStore "github-discussion" for .github/DISCUSSION_TEMPLATE/*.yml (discussion category
+    forms have no name or description, so the issue-forms schema does not fit them);
   * the request-body schema of "Create a repository ruleset" (POST /repos/{owner}/{repo}/rulesets),
     cut out of GitHub's OpenAPI description (github/rest-api-description).
 
@@ -30,6 +32,7 @@ CACHE = ROOT / ".cache" / "schemas"
 SCHEMAS = {
     "github-issue-forms.json": "https://www.schemastore.org/github-issue-forms.json",
     "github-issue-config.json": "https://www.schemastore.org/github-issue-config.json",
+    "github-discussion.json": "https://www.schemastore.org/github-discussion.json",
 }
 OPENAPI_URL = ("https://raw.githubusercontent.com/github/rest-api-description/main/"
                "descriptions/api.github.com/api.github.com.json")
@@ -127,13 +130,15 @@ def _errors(validator, instance) -> list[str]:
             for e in sorted(validator.iter_errors(instance), key=lambda e: list(map(str, e.absolute_path)))]
 
 
-def form_rules(form: dict, is_issue_form: bool) -> list[str]:
+def form_rules(form: dict, needs_secrets_checkbox: bool) -> list[str]:
     """Rules GitHub enforces that the JSON schema does not fully express, plus our own rules."""
     problems = []
     ids = [el.get("id") for el in form.get("body", []) if el.get("id")]
     if len(ids) != len(set(ids)):
         problems.append("element ids are not unique")
-    if is_issue_form:
+    if not any(el.get("type") != "markdown" for el in form.get("body", [])):
+        problems.append("the body needs at least one field that is not markdown")
+    if needs_secrets_checkbox:
         found = False
         for el in form.get("body", []):
             if el.get("type") == "checkboxes":
@@ -146,7 +151,7 @@ def form_rules(form: dict, is_issue_form: bool) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Validate issue forms, chooser config and rulesets.")
+    p = argparse.ArgumentParser(description="Validate issue and discussion forms, chooser config and rulesets.")
     p.add_argument("--refresh", action="store_true")
     p.add_argument("--offline", action="store_true")
     args = p.parse_args(argv)
@@ -158,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
 
     forms_v = jsonschema.Draft7Validator(schemas["github-issue-forms.json"])
     config_v = jsonschema.Draft7Validator(schemas["github-issue-config.json"])
+    discussion_v = jsonschema.Draft7Validator(schemas["github-discussion.json"])
     ruleset_v = jsonschema.Draft4Validator(schemas[RULESET_SCHEMA])
 
     failures = 0
@@ -180,12 +186,15 @@ def main(argv: list[str] | None = None) -> int:
         if path.stem == "config":
             report(path, _errors(config_v, data))
         else:
-            report(path, _errors(forms_v, data) + form_rules(data, is_issue_form=True))
+            report(path, _errors(forms_v, data) + form_rules(data, needs_secrets_checkbox=True))
+    for path in sorted((ROOT / ".github" / "DISCUSSION_TEMPLATE").glob("*.y*ml")):
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        report(path, _errors(discussion_v, data) + form_rules(data, needs_secrets_checkbox=True))
     for name in ("VULNERABILITY_REPORT.yml", "VULNERABILITY_REPORT.yaml"):
         path = ROOT / ".github" / name
         if path.exists():
             data = yaml.safe_load(path.read_text(encoding="utf-8"))
-            report(path, _errors(forms_v, data) + form_rules(data, is_issue_form=False))
+            report(path, _errors(forms_v, data) + form_rules(data, needs_secrets_checkbox=False))
     for path in sorted((ROOT / "rulesets").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         extra = []

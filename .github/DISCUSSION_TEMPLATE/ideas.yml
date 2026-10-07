@@ -1,0 +1,46 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are discussed here first. Once an idea is agreed, it becomes a feature request in the repository's **Issues** tab.
+
+        **Everything you write here is public.** Replace secrets, tokens, licence keys, IP addresses, hostnames and player or user data with placeholders such as `<redacted>`.
+  - type: input
+    id: project
+    attributes:
+      label: Project
+      description: The repository the idea is for, or "several".
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what stops you today?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: How could the project solve this? Examples of configuration or output help.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds or other tools you tried.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing discussions and issues and found no similar idea.
+          required: true
+        - label: I removed all secrets, tokens, licence keys, IPs and player data.
+          required: true
+        - label: I agree to follow the [Code of Conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md).
+          required: true
