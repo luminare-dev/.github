@@ -154,10 +154,13 @@ class TestRealConfig(unittest.TestCase):
             self.assertLessEqual(len(l.description), 100, l.name)
             self.assertRegex(l.color, r"^[0-9A-F]{6}$")
 
-    def test_no_product_line_colours(self):
-        # Ember/Orchid/Verdant/Amber (and their bright and mark variants) are product-line colours.
-        tokens = {"B71920", "FF5147", "A333B5", "EF8DEF", "028844", "58DD70", "B15204", "FFB334"}
-        self.assertFalse(tokens & {l.color for l in desired()})
+    def test_only_core_palette_and_github_colours(self):
+        # The brand kit's core palette (palette/tokens.json) and GitHub's own label colours.
+        core = {"1F47C4", "2B8FF0", "5BDFFF", "2D63DE", "15308A", "0A1224", "E3E8F1", "B7C1D3", "06F2C4",
+                "5E6B84", "39445C", "F3F6FB", "FFFFFF"}
+        github = {"B60205", "D93F0B", "FBCA04", "0E8A16", "7057FF", "008672"}
+        for l in desired():
+            self.assertIn(l.color, core | github, l.name)
 
     def test_issue_form_labels_exist(self):
         names = {l.name for l in desired()}

@@ -11,7 +11,7 @@
 #
 # Colours: brand tokens (palette/tokens.json of the brand kit) for type and status labels;
 # GitHub's own label colours where the brand has no fitting hue (priority heat scale, the two
-# labels GitHub promotes on its "contribute" pages). The product-line colours are not used.
+# labels GitHub promotes on its "contribute" pages). No other colours are used.
 
 labels:
   # Type: what kind of work it is.
