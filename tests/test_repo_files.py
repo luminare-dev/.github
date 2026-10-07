@@ -33,7 +33,7 @@ class TestLayout(unittest.TestCase):
         # docs.github.com "Creating a default community health file" (checked 2026-10-07):
         # issue templates and config in .github/ISSUE_TEMPLATE; discussion category forms in
         # .github/DISCUSSION_TEMPLATE, named after the category slug; VULNERABILITY_REPORT.yml and
-        # FUNDING.yml only in .github/; the others in the root, .github/ or docs/.  (rule-text)
+        # FUNDING.yml only in .github/; the others in the root, .github/ or docs/.  # rule-text
         # The organization profile is profile/README.md in the public .github repository.
         for rel in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md", "ACCESSIBILITY.md",
                     ".github/DISCUSSION_TEMPLATE/q-a.yml", ".github/DISCUSSION_TEMPLATE/ideas.yml",
@@ -182,6 +182,19 @@ class TestProfile(unittest.TestCase):
 
     def test_brand_files_are_the_studio_variant(self):
         self.assertIn("variant: studio", read("docs/brand/KIT_VERSION"))
+
+    def test_profile_header_block(self):
+        # The header sits between oss-template's markers (07's project-page sync drops the block).
+        # The org profile has no byline (brand-repos repos.yaml: byline: false).
+        text = read("profile/README.md")
+        self.assertTrue(text.startswith("<!-- header:begin"), "the profile must start with the header block")
+        header = text[:text.index("<!-- header:end -->") + len("<!-- header:end -->")]
+        self.assertNotIn("byline:", header)
+        snippet = ROOT.parent / "brand-repos" / "out" / "org-profile" / "README-snippet.md"
+        if not snippet.is_file():
+            self.skipTest("no ../brand-repos checkout next to this repository")
+        self.assertEqual(header + "\n", snippet.read_text(encoding="utf-8"),
+                         "copy brand-repos/out/org-profile/README-snippet.md again")
 
 
 if __name__ == "__main__":

@@ -4,7 +4,10 @@
 Five checks, all run by default:
 
 1. Wording: offer, price, funding, store and "coming soon" wording in English and German, plus
-   funding-platform and store domains. Case-insensitive and word-boundary aware.
+   funding-platform and store domains. Case-insensitive and word-boundary aware. The rules run
+   over the whole file, so a phrase broken across a line wrap still matches, and over every file
+   path. Each line is normalised first (HTML entities, NFKC, invisible characters, Unicode
+   dashes), and a word that mixes Latin with Cyrillic or Greek look-alike letters is reported.
 2. Funding file: a FUNDING.yml / FUNDING.yaml anywhere fails, and no allowlist entry can excuse it.
 3. Names: platform and vendor marks in the repository name, galaxy.yml namespace/name, package
    names, an Action name, Grafana dashboard titles and the README title.
@@ -20,30 +23,38 @@ Exceptions:
       <path glob> | <rule id, matched text or *> | <reason>
   The pseudo-path "@name" covers the name check. Every entry needs a reason, and unused entries
   are reported. Scope an entry to data or UI files, or to the one domain a project links to.
-* A line that quotes the rules themselves can carry the marker "rule-text" in a comment on the
-  same line. It exempts that line from the wording check only. Every use is counted in the
-  summary, so a reviewer sees how many exist.
+  The term "*" never covers the e-mail rule (name "email" explicitly), and terms from the
+  private list (--extra-terms) can never be excused.
+* A line that quotes the rules themselves can end with the comment <!-- rule-text --> (Markdown,
+  HTML) or # rule-text (YAML, shell, Python). Only that comment at the very end of the line
+  counts. It exempts that line from the wording check only (not from the private terms). Every
+  use is counted in the summary, so a reviewer sees how many exist.
 
 Exit codes: 0 clean, 1 findings, 2 usage or configuration error.
 
 Usage:
   python3 scripts/forbidden_words.py [--template-mode] [--repo-name NAME] [PATH ...]
   echo "Buy the pro version" | python3 scripts/forbidden_words.py --stdin
+  git log --all --format='%an <%ae>%n%cn <%ce>%n%B' | python3 scripts/forbidden_words.py --stdin
   python3 scripts/forbidden_words.py --list-rules
 """
 
 from __future__ import annotations
 
 import argparse
+import bisect
 import configparser
 import fnmatch
+import html
 import json
 import os
 import re
 import subprocess
 import sys
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 try:  # Python 3.11+
     import tomllib
@@ -53,6 +64,9 @@ except ModuleNotFoundError:  # pragma: no cover - the CI runner has 3.12
 ROOT = Path(__file__).resolve().parent.parent
 ALLOW_FILE = ".forbidden-words-allow"
 MARKER = "rule-text"
+# Only an HTML or "#" comment at the very end of the line counts, never the word in prose or a URL.
+MARKER_RE = re.compile(r"(?:<!--\s*rule-text\s*-->|(?<!\S)#\s*rule-text)\s*$")
+EXTRA_PREFIX = "extra-"  # rule ids of the private term list
 NAME_PSEUDO_PATH = "@name"
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", ".cache", "dist", ".tox"}
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".tgz",
@@ -64,10 +78,11 @@ class Rule:
     rule_id: str
     label: str
     regex: re.Pattern
+    accept: Callable[[str], bool] | None = None  # optional second test on the matched text
 
 
 def _rules(spec: list[tuple[str, str, str]]) -> list[Rule]:
-    return [Rule(rid, label, re.compile(rx, re.IGNORECASE)) for rid, label, rx in spec]
+    return [Rule(rid, label, re.compile(rx, re.IGNORECASE | re.MULTILINE)) for rid, label, rx in spec]
 
 
 S = r"[\s-]+"  # one or more spaces or hyphens between the words of a phrase
@@ -85,13 +100,21 @@ S = r"[\s-]+"  # one or more spaces or hyphens between the words of a phrase
 #   nehmen"), "Leistung" (performance), "selbstständig" (runs on its own), "SLA".
 # * "affiliated" stays allowed: the not-affiliated line is mandatory for FXServer projects;
 #   only "affiliate(s)" in the marketing sense is matched.
-# * "preisgeben" (to disclose) does not match "preis" because of the word boundary.
-# * Phrases are matched with spaces or hyphens between the words ("pro-version").
+# * "preisgeben"/"Preisgabe" (to disclose) are excluded from the German price rule, and
+#   "suspended" from the German donation rule (it contains "spende").
+# * Phrases are matched with spaces, hyphens or line breaks between the words ("pro-version").
+# * Store and product hosts or paths on the reserved example domains (example.com/.org/.net) are
+#   not reported.
+# * Known matches kept on purpose (a project that really needs one gets a reviewed entry in
+#   .forbidden-words-allow, scoped to its data or UI files): "commission a server" (the
+#   availability rule), "EUR/USD" (an exchange-rate exporter), "spot price", "sponsored by the
+#   protocol", "Angebot von <hoster>", "Werbung blocken", "Preisgeld".
 # --------------------------------------------------------------------------------------------
 TEXT_RULES = _rules([
     # English: money and selling
     ("price", "price wording", r"\bpric(?:e|es|ed|ing|elists?)\b"),
-    ("currency", "currency sign or code", r"€|£|\bEUR\b|\bUSD\b|\beuros?\b"),
+    ("currency", "currency sign or code",
+     r"€|£|\bEUR\b|\bUSD\b|\beuros?\b|\d\s*(?:EUR|USD)\b|\b(?:EUR|USD)\s*\d"),
     ("hire", "hire wording", r"\bhir(?:e|es|ed|ing)\b"),
     ("buy", "buy or purchase wording", r"\bbuy(?:s|ing)?\b|\bpurchas(?:e|es|ed|ing)\b"),
     ("sell", "selling wording", r"\bsell(?:s|ing)?\b|\bfor" + S + r"sale\b|\bon" + S + r"sale\b"),
@@ -103,9 +126,10 @@ TEXT_RULES = _rules([
      r"\bpaid" + S + r"(?:tiers?|plans?|versions?|editions?|support|add-?ons?|features?|licen[cs]es?)\b"
      r"|\benterprise" + S + r"(?:edition|version|tier|plan|licen[cs]e)\b|\bfree" + S + r"trial\b"),
     ("commercial-licence", "commercial or dual licence offer",
-     r"\bcommercial" + S + r"licen[cs]e\b|\bdual" + S + r"licen[cs](?:e|ed|ing)\b"),
+     r"\bcommercial" + S + r"licen[cs]e\b|\bdual" + S + r"licen[cs](?:e|ed|ing)\b|\blicensing" + S + r"options\b"),
     ("paid-support", "paid support wording",
-     r"\b(?:paid|commercial|priority|premium)" + S + r"support\b|\bsupport" + S + r"(?:contracts?|plans?|packages?)\b"),
+     r"\b(?:paid|commercial|priority|premium|enterprise)" + S + r"support\b"
+     r"|\bsupport" + S + r"(?:contracts?|plans?|packages?)\b"),
     ("services", "services wording",
      r"\b(?:our|my)" + S + r"services\b|\bservices" + S + r"(?:offered|available)\b"
      r"|\bprofessional" + S + r"services\b|\b(?:setup|installation|install|consulting)" + S + r"services?\b"
@@ -126,8 +150,8 @@ TEXT_RULES = _rules([
     ("sponsor", "sponsor wording", r"\bsponsor\w*|\bgesponsert\b"),
     ("donate", "donation wording",
      r"\bdonat\w*|\btip[\s-]?jars?\b|\b(?:buy|get)" + S + r"me" + S + r"a" + S + r"coffee\b"
-     r"|\bsupport" + S + r"(?:the|this|my)" + S + r"(?:project|work)\b"),
-    ("funding", "funding wording", r"\bfunding\b|\bfund" + S + r"(?:this|the)" + S + r"project\b"),
+     r"|\bsupport" + S + r"(?:the|this|my)" + S + r"(?:project|work)\b|\bsupport" + S + r"(?:us|me)\b(?!-)"),
+    ("funding", "funding wording", r"\b\w*funding\b|\bfund" + S + r"(?:this|the)" + S + r"project\b"),
     ("affiliate-ads", "affiliate, referral or ad wording",
      r"\baffiliates?\b|\breferral" + S + r"(?:links?|codes?)\b|\bpromo" + S + r"codes?\b|\bcoupons?\b"
      r"|\bdiscount\w*|\badvertisements?\b|\bad-?supported\b"),
@@ -139,11 +163,14 @@ TEXT_RULES = _rules([
      r"\bbitcoin\b|\bethereum\b|\bbtc" + S + r"address\b|\bcrypto" + S + r"(?:address|wallet)\b|\bwallet" + S + r"address\b"),
     # German equivalents (posts are German first).
     ("de-price", "Preis- oder Honorarwortlaut",
-     r"\bpreis(?:e|en|liste|listen)?\b|\bkostenpflichtig\w*|\bentgelt\w*|\bhonorar\w*"
-     r"|\bstundensatz\w*|\btagessatz\w*|\bpauschale\b|\bpauschalpreis\w*|\bgebühr(?:en)?\b"),
+     r"\b\w*?preis(?!g[ae]b)\w*|\bkostenpflichtig\w*|\bentgelt\w*|\bhonorar\w*"
+     r"|\bstundensatz\w*|\btagessatz\w*|\bpauschale\b|\bgebühr(?:en)?\b|\babo(?:nnement\w*)?\b"),
     ("de-buy", "Kauf- oder Verkaufswortlaut",
-     r"\b(?:kaufen|kauft|kaufe|gekauft)\b|\bverkauf(?:en|t|e)?\b|\bvollversion\b"),
-    ("de-donate", "Spenden- oder Trinkgeldwortlaut", r"\b(?:ge)?spende(?:n|t|r)?\b|\bspendier\w*|\btrinkgeld\w*"),
+     r"\b(?:kaufen|kauft|kaufe|gekauft)\b|\bverkauf(?:en|t|e)?\b|\bvollversion\b|\bkauf\s+jetzt\b"
+     r"|\bbezahl(?:version|variante)\w*"),
+    ("de-donate", "Spenden- oder Trinkgeldwortlaut",
+     r"\b\w*?(?<!su)spende\w*|\bspendier\w*|\btrinkgeld\w*"
+     r"|\bunterstütz\w*\s+(?:sie\s+)?(?:uns|mich|das\s+projekt)\b"),
     ("de-coming-soon", "Ankündigung (demnächst, bald verfügbar, Warteliste)",
      r"\bdemnächst\b|\bbald" + S + r"(?:verfügbar|erhältlich|da|online)\b|\bin" + S + r"kürze\b"
      r"|\bwarteliste\w*|\bvorbestell\w*|\bvorverkauf\w*"),
@@ -155,18 +182,48 @@ TEXT_RULES = _rules([
     ("de-services", "Dienstleistungs- oder Verfügbarkeitswortlaut",
      r"\bdienstleist\w*|\bfreiberuf\w*|\bfür" + S + r"(?:neue" + S + r")?projekte" + S + r"(?:frei|verfügbar)\b"
      r"|\b(?:meine|unsere)" + S + r"(?:dienste|leistungen)\b"),
-    ("de-ads", "Werbe- oder Partnerlinkwortlaut", r"\bwerbung\b|\bwerbe(?:link|partner)\w*|\bpartnerlinks?\b|\bprovisionslinks?\b"),
+    ("de-ads", "Werbe- oder Partnerlinkwortlaut",
+     r"\bwerbung\b|\bwerbe(?:link|partner)\w*|\bpartnerlinks?\b|\bprovisionslinks?\b|\bpartnerprogramm\w*"),
+    ("de-shop", "Store-Seiten- oder Produktlinienwortlaut", r"\bprodukt[\s-]?linie\w*|\bstore[\s-]?seite\w*"),
     # Domains and hosts.
     ("funding-platform", "funding or donation platform",
      r"patreon|\bko-?fi\b|buymeacoffee|paypal|open[\s-]?collective|liberapay|github\.com/sponsors"
-     r"|polar\.sh|thanks\.dev|tidelift|issuehunt|bountysource|gitcoin"),
+     r"|polar\.sh|thanks\.dev|tidelift|issuehunt|bountysource|gitcoin|kickstarter|indiegogo|steadyhq|flattr"
+     r"|donorbox|(?:checkout|donate|buy)\.stripe\.com|revolut\.me"),
     ("store-domain", "store or marketplace domain",
      r"tebex|gumroad|lemonsqueezy|payhip|\bitch\.io\b|etsy\.com|shopify|apps\.apple\.com|play\.google\.com"
      r"|f-droid\.org|chromewebstore\.google\.com|microsoftedge\.microsoft\.com|addons\.mozilla\.org"
      r"|store\.steampowered\.com"),
     ("product-host", "store or product-line hostname",
-     r"\b(?:store|shop|scripts)\.(?:primary_domain|[a-z0-9-]+\.(?:tech|com|net|org|io|at|de|eu|dev|app|gg|shop|store))\b"),
+     r"\b(?:store|shop|scripts)\.(?!example\.(?:com|net|org)\b)"
+     r"(?:primary_domain|[a-z0-9-]+\.(?:tech|com|net|org|io|at|de|eu|dev|app|gg|shop|store))\b"),
+    ("product-path", "store, product or pricing page on a website",
+     # (play.google.com/store is the store-domain rule's, so one allowlist entry covers a listing)
+     r"(?<![a-z0-9.-])(?![a-z0-9.-]*\b(?:example\.(?:com|net|org)|play\.google\.com)/)[a-z0-9.-]+\.[a-z]{2,}"
+     r"/(?:store|shop|products?|services|pricing|preise|checkout)\b"),
 ])
+
+# Look-alike letters (homoglyph evasion such as a Cyrillic "i" in "price"). Greek letters that
+# do not look like Latin ones (µ in "µs", Δ in "Δt") are not reported.
+_GREEK_LOOKALIKES = set("\u0391\u0392\u0395\u0396\u0397\u0399\u039a\u039c\u039d\u039f\u03a1\u03a4\u03a5\u03a7"  # capitals
+                        "\u03b1\u03b5\u03b9\u03ba\u03bd\u03bf\u03c1\u03c5\u03c7")  # small letters
+
+
+def _mixes_scripts(word: str) -> bool:
+    latin = other = False
+    for ch in word:
+        if not ch.isalpha():
+            continue
+        name = unicodedata.name(ch, "")
+        if name.startswith("LATIN"):
+            latin = True
+        elif name.startswith("CYRILLIC") or (name.startswith("GREEK") and ch in _GREEK_LOOKALIKES):
+            other = True
+    return latin and other
+
+
+TEXT_RULES.append(Rule("mixed-script", "word mixes Latin with Cyrillic or Greek look-alike letters",
+                       re.compile(r"\w*[^\x00-\x7f\W]\w*"), _mixes_scripts))
 
 # --------------------------------------------------------------------------------------------
 # Name rules (PUBLISHING.md B4): platform and vendor marks stay out of every name. Platform
@@ -208,6 +265,7 @@ EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-
 ALLOWED_EMAILS = {"oss@luminare.tech", "conduct@luminare.tech", "security@luminare.tech", "git@github.com"}
 ALLOWED_EMAIL_SUFFIXES = ("@users.noreply.github.com", "@example.com", "@example.org", "@example.net", ".example",
                           ".invalid", ".test")
+ALLOWED_EMAIL_PREFIXES = ("noreply@", "no-reply@")  # no-reply senders are nobody's mailbox (commit trailers)
 TEMPLATE_HINT_RE = re.compile(r"<!--\s*template(?::|-only:begin)", re.IGNORECASE)
 FUNDING_RE = re.compile(r"funding\.ya?ml", re.IGNORECASE)
 
@@ -224,7 +282,9 @@ class AllowEntry:
         if not fnmatch.fnmatchcase(rel_path, self.glob):
             return False
         t = self.term.casefold()
-        return t == "*" or t == rule.rule_id.casefold() or t == rule.label.casefold() or t == text.casefold()
+        if t == "*":  # "*" never covers e-mail addresses: an entry has to name "email"
+            return rule.rule_id != "email"
+        return t == rule.rule_id.casefold() or t == rule.label.casefold() or t == text.casefold()
 
 
 @dataclass
@@ -282,10 +342,10 @@ def load_extra_terms(path: Path) -> tuple[list[Rule], list[Rule]]:
         if kind not in ("text", "name") or not rx.strip():
             raise ConfigError(f"{path}:{no}: expected 'text <regex>' or 'name <regex>'")
         try:
-            compiled = re.compile(rx.strip(), re.IGNORECASE)
+            compiled = re.compile(rx.strip(), re.IGNORECASE | re.MULTILINE)
         except re.error as exc:
             raise ConfigError(f"{path}:{no}: bad regex: {exc}") from exc
-        rule = Rule(f"extra-{no}", "term from the private extra list", compiled)
+        rule = Rule(f"{EXTRA_PREFIX}{no}", "term from the private extra list", compiled)
         (text_rules if kind == "text" else name_rules).append(rule)
     return text_rules, name_rules
 
@@ -319,25 +379,68 @@ def is_text(path: Path) -> bool:
         return False
 
 
+_ENTITY_RE = re.compile(r"&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});")
+_LINE_BREAKS_RE = re.compile(r"[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]")
+# Invisible characters are removed; Unicode hyphens and dashes and the minus sign become "-".
+_NORMALISE = {**dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\u00ad\ufeff")),
+              **{cp: "-" for cp in (*range(0x2010, 0x2016), 0x2212)}}
+
+
+def normalise(line: str) -> str:
+    """The text a reader sees: HTML entities decoded (only complete ones with ";"), NFKC
+    (full-width letters, ligatures, no-break spaces), invisible characters removed, dashes
+    unified. The result never contains a line break, so line numbers stay valid."""
+    line = _ENTITY_RE.sub(lambda m: html.unescape(m.group(0)), line)
+    line = unicodedata.normalize("NFKC", line).translate(_NORMALISE)
+    return _LINE_BREAKS_RE.sub(" ", line)
+
+
 def scan_text(rel: str, text: str, rules: list[Rule], allow: list[AllowEntry], report: Report) -> None:
-    for no, line in enumerate(text.splitlines(), start=1):
+    raw_lines = text.splitlines()
+    found: list[tuple[int, int, str]] = []
+    for no, line in enumerate(raw_lines, start=1):
         for m in EMAIL_RE.finditer(line):
             addr = m.group(0).lower()
-            if addr in ALLOWED_EMAILS or addr.endswith(ALLOWED_EMAIL_SUFFIXES):
+            if addr in ALLOWED_EMAILS or addr.endswith(ALLOWED_EMAIL_SUFFIXES) or addr.startswith(ALLOWED_EMAIL_PREFIXES):
                 continue
             if _allowed(allow, rel, EMAIL_RULE, m.group(0), report):
                 continue
-            report.error(f"{rel}:{no}:{m.start() + 1}: [email] e-mail address that is not a role or example "
-                         f"address: {m.group(0)!r}", rel, no, m.start() + 1)
-        if MARKER in line:
-            report.rule_text_lines += 1
-            continue
-        for rule in rules:
-            for m in rule.regex.finditer(line):
-                if _allowed(allow, rel, rule, m.group(0), report):
-                    continue
-                report.error(f"{rel}:{no}:{m.start() + 1}: [{rule.rule_id}] {rule.label}: {m.group(0)!r}",
-                             rel, no, m.start() + 1)
+            found.append((no, m.start() + 1, f"[email] e-mail address that is not a role or example "
+                                             f"address: {m.group(0)!r}"))
+    marked = [bool(MARKER_RE.search(line)) for line in raw_lines]
+    report.rule_text_lines += sum(marked)
+    # The wording rules run over the whole (normalised) text, so a phrase broken across a line
+    # wrap matches too; each match is mapped back to the line it starts on.
+    lines = [normalise(line) for line in raw_lines]
+    joined = "\n".join(lines)
+    starts = [0]
+    for line in lines:
+        starts.append(starts[-1] + len(line) + 1)
+    for rule in rules:
+        for m in rule.regex.finditer(joined):
+            if not m.group(0) or (rule.accept and not rule.accept(m.group(0))):
+                continue
+            first = bisect.bisect_right(starts, m.start()) - 1
+            last = bisect.bisect_right(starts, m.end() - 1) - 1
+            if not rule.rule_id.startswith(EXTRA_PREFIX) and all(marked[first:last + 1]):
+                continue  # a rule-text line (never for the private terms)
+            if _allowed(allow, rel, rule, m.group(0), report):
+                continue
+            found.append((first + 1, m.start() - starts[first] + 1,
+                          f"[{rule.rule_id}] {rule.label}: {m.group(0)!r}"))
+    for no, col, msg in sorted(found):
+        report.error(f"{rel}:{no}:{col}: {msg}", rel, no, col)
+
+
+def scan_path(rel: str, rules: list[Rule], allow: list[AllowEntry], report: Report) -> None:
+    """The wording rules on a file path (docs/pricing.md is as public as its content)."""
+    for rule in rules:
+        for m in rule.regex.finditer(normalise(rel)):
+            if not m.group(0) or (rule.accept and not rule.accept(m.group(0))):
+                continue
+            if _allowed(allow, rel, rule, m.group(0), report):
+                continue
+            report.error(f"{rel}: [{rule.rule_id}] {rule.label} in the file path: {m.group(0)!r}", rel)
 
 
 PLACEHOLDER_RULE = Rule("placeholder", "unfilled placeholder", PLACEHOLDER_RE)
@@ -346,6 +449,8 @@ TEMPLATE_HINT_RULE = Rule("template-hint", "template hint or template-only block
 
 
 def _allowed(allow: list[AllowEntry], rel: str, rule: Rule, text: str, report: Report) -> bool:
+    if rule.rule_id.startswith(EXTRA_PREFIX):
+        return False  # private terms (personal data) can never be excused
     hit = next((a for a in allow if a.matches(rel, rule, text)), None)
     if hit:
         hit.used += 1
@@ -479,6 +584,8 @@ def run(root: Path, *, template_mode: bool = False, repo_name: str | None = None
     for rel in files:
         if FUNDING_RE.fullmatch(Path(rel).name):
             report.error(f"{rel}: a funding file must not exist (it adds a Sponsor button)", rel)
+        else:
+            scan_path(rel, text_rules, allow, report)
     listed: set[str] = set()
     if (root / "PLACEHOLDERS.md").is_file():
         listed = set(PLACEHOLDER_RE.findall((root / "PLACEHOLDERS.md").read_text(encoding="utf-8")))

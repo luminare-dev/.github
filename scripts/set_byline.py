@@ -163,7 +163,10 @@ def main(argv: list[str] | None = None) -> int:
         for prob in problems:
             print(f"error: {prob}")
         if problems:
-            print(swap_instructions(mode, slug))
+            target = args.expect or mode
+            if target != mode:
+                print(f"run: python3 scripts/set_byline.py {target}")
+            print(swap_instructions(target, slug))
             return 1
         print(f"ok: README byline, docs/brand/ and NOTICE all use the {mode} variant")
         return 0

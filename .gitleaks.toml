@@ -29,6 +29,10 @@ keywords = ["sv_licensekey"]
   regexTarget = "line"
   regexes = ['''\{\{.*\}\}''', '''\$\{?[A-Za-z_]''', '''changeme''']
 
+  [[rules.allowlists]]
+  description = "documentation placeholders (YOUR_..., example, placeholder, the x-placeholder key)"
+  regexes = ['''(?i)^your[_-]''', '''(?i)example|placeholder''', '''^cfxk_x+_x+$''']
+
 [[rules]]
 id = "txadmin-api-token"
 description = "TXHOST_API_TOKEN set to a literal value"
@@ -40,6 +44,10 @@ keywords = ["txhost_api_token"]
   description = "templated values and the documented 'disabled' value"
   regexTarget = "line"
   regexes = ['''\{\{.*\}\}''', '''\$\{?[A-Za-z_]''', '''(?i)=\s*["']?disabled''']
+
+  [[rules.allowlists]]
+  description = "documentation placeholders (your-..., example, placeholder)"
+  regexes = ['''(?i)^your[_-]''', '''(?i)example|placeholder''']
 
 [[rules]]
 id = "discord-webhook-url"

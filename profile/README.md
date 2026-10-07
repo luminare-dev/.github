@@ -1,9 +1,11 @@
-<!-- README header: brand-repos 0.1.0, variant studio, files in docs/brand/ of luminare-dev/.github -->
+<!-- header:begin: brand-repos 0.1.0, variant studio, files in https://raw.githubusercontent.com/luminare-dev/.github/main/docs/brand/; the project-page sync drops this block -->
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/luminare-dev/.github/main/docs/brand/readme-header-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/luminare-dev/.github/main/docs/brand/readme-header-light.svg">
   <img alt="Luminare Development" src="https://raw.githubusercontent.com/luminare-dev/.github/main/docs/brand/readme-header-light.svg">
 </picture>
+
+<!-- header:end -->
 
 Luminare Development publishes open-source projects for infrastructure automation, observability
 and developer tooling. Every project comes with its code, tests, documentation and an
