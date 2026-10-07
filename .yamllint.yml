@@ -1,6 +1,10 @@
 # yamllint configuration (https://yamllint.readthedocs.io/)
 extends: default
 
+ignore: |
+  node_modules/
+  .venv/
+
 rules:
   document-start: disable          # GitHub's form files do not use "---"
   line-length:

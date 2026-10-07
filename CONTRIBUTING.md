@@ -128,4 +128,4 @@ effort, not a guarantee. Please do not ping repeatedly; a polite bump after 14 d
 ## Code of Conduct
 
 Everyone who takes part follows the [Code of Conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md). Report problems to
-conduct@luminare.tech.
+<conduct@luminare.tech>.

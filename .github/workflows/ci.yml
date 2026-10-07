@@ -1,0 +1,30 @@
+# Caller: lint, tests and the full-history secret scan on every pull request and push to main.
+# Required checks for the main ruleset: "ci / lint-test" and "secrets / gitleaks".
+# From luminare-dev/oss-template (README.md, "Development"); only the test command differs.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      # Schema checks of the forms and the ruleset (downloads the schemas, so the schema tests run too).
+      test-command: python3 scripts/validate.py && python3 -m unittest discover -s tests -v
+    permissions:
+      contents: read
+
+  secrets:
+    uses: ./.github/workflows/reusable-gitleaks.yml
+    permissions:
+      contents: read

@@ -1,0 +1,9 @@
+# Allowlist for scripts/forbidden_words.py (same format as in luminare-dev/oss-template).
+#
+#   <path glob> | <rule id, matched text or *> | <reason>
+#
+# Every entry needs a reason a reviewer can check. Unused entries are reported as warnings.
+
+scripts/forbidden_words.py | * | the check's own rule list, its documentation and the usage examples
+scripts/set_byline.py | placeholder | prints the names of the placeholders to fill again after a brand swap
+LICENSE | sell | the MIT licence grants the right to "sell copies" of the software

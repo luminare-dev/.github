@@ -1,11 +1,12 @@
 # Placeholders
 
-Values that are left open on purpose. Fill each one in before the first push; the check in
-`scripts/check_public_text.py` lists any `{{…}}` that is still present.
+Values that are left open on purpose. Fill each one in before the first push:
+`python3 scripts/forbidden_words.py` (the publish gate) lists any `{{…}}` that is still present,
+while `--template-mode` allows the ones listed here.
 
 | Placeholder | Where | Fill with |
 |---|---|---|
-| `{{AUTHOR_NAME}}` | `LICENSE` (copyright line), `NOTICE` (copyright line) | The copyright holder, a natural person. Use the same form of the name in every repository. |
+| `{{AUTHOR_NAME}}` | `LICENSE` (copyright line), `NOTICE` (copyright line), `README.md` (personal byline, commented out) | The copyright holder, a natural person. Use the same form of the name in every repository. |
 
 ## Values to confirm (not placeholders)
 

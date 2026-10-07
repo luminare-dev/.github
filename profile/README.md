@@ -36,7 +36,7 @@ Planned projects get a link here when their first release is public.
 ## More
 
 - Portfolio and project pages: [luminare.tech](https://luminare.tech)
-- Contact: oss@luminare.tech
+- Contact: <oss@luminare.tech>
 
 The code in each repository is licensed as its `LICENSE` file says. The Luminare name, logo and
 header images are not covered by those licences; see each repository's `NOTICE`.

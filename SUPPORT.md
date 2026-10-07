@@ -13,7 +13,7 @@ Help happens **in public**, so that the next person with the same question finds
 | report a bug that you can reproduce | the repository's **Issues** tab, form "Bug report" |
 | propose a feature | the repository's **Issues** tab, form "Feature request" |
 | report a security problem | **never in public**: follow [SECURITY.md](https://github.com/luminare-dev/.github/blob/main/SECURITY.md) |
-| report a Code of Conduct problem | conduct@luminare.tech |
+| report a Code of Conduct problem | <conduct@luminare.tech> |
 
 Answers are **best effort**. The maintainers aim for a first reply within 7 days, but there is no
 guaranteed response time.
@@ -41,4 +41,4 @@ guaranteed response time.
 ## General contact
 
 For things that are not support requests, such as questions about licensing or a project in
-general, write to oss@luminare.tech.
+general, write to <oss@luminare.tech>.

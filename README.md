@@ -1,10 +1,17 @@
+<!-- header:begin: brand header and byline; scripts/set_byline.py switches the byline variant -->
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/brand/readme-header-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/brand/readme-header-light.svg">
   <img alt="Luminare Development" src="docs/brand/readme-header-light.svg">
 </picture>
 
+<!-- byline:studio -->
 *a [Luminare Development](https://luminare.tech/open-source/) open-source project*
+<!-- /byline:studio -->
+<!-- byline:personal
+*by {{AUTHOR_NAME}} · [project page](https://luminare.tech/open-source/)*
+/byline:personal -->
+<!-- header:end -->
 
 # .github
 
@@ -21,9 +28,9 @@ A change here therefore changes every repository that relies on the default.
 
 | File | Effect | Override in a project repository |
 |---|---|---|
-| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Contributor Covenant 3.0; reports to conduct@luminare.tech | its own `CODE_OF_CONDUCT.md` |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Contributor Covenant 3.0; reports to <conduct@luminare.tech> | its own `CODE_OF_CONDUCT.md` |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Conventional Commits, DCO sign-off, issue before a large pull request, no secrets in issues | its own `CONTRIBUTING.md` |
-| [`SECURITY.md`](SECURITY.md) | latest minor version supported; private vulnerability reporting first, security@luminare.tech as fallback; acknowledgement within 14 days, best effort | its own `SECURITY.md` |
+| [`SECURITY.md`](SECURITY.md) | latest minor version supported; private vulnerability reporting first, <security@luminare.tech> as fallback; acknowledgement within 14 days, best effort | its own `SECURITY.md` |
 | [`SUPPORT.md`](SUPPORT.md) | public issues and Discussions only, best effort | its own `SUPPORT.md` |
 | [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE) | bug report and feature request forms, blank issues off, links to Discussions and the security policy | **any** file in its own `.github/ISSUE_TEMPLATE/` replaces this whole folder |
 | [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) | checklist: Conventional Commit title, sign-off, tests, no secrets | its own pull request template |
@@ -32,6 +39,7 @@ A change here therefore changes every repository that relies on the default.
 | [`labels.yml`](labels.yml), [`scripts/sync_labels.py`](scripts/sync_labels.py) | shared triage labels and the script that syncs them | — |
 | [`rulesets/main.json`](rulesets/main.json) | branch ruleset to import into each repository | — |
 | [`SETTINGS.md`](SETTINGS.md) | checklist for the organization, account and repository settings | — |
+| [`.github/workflows/`](.github/workflows), [`scripts/`](scripts) | CI for this repository only (not inherited): the template's checks for wording, byline, workflow pins, YAML, Markdown, tests, secrets and the pull request title | — |
 
 Licences cannot be inherited: every repository has its own `LICENSE`, and its own `README.md`.
 There is deliberately no funding file here, because it would add a Sponsor button to every <!-- rule-text -->
@@ -77,28 +85,49 @@ before importing: the check names must match checks that actually run in that re
 
 ## Development
 
-Run the checks before every pull request:
+CI runs on every pull request and push to `main` with the same workflows and checks as the
+repositories built from the organization's template (`luminare-dev/oss-template`); they report
+`ci / lint-test`, `secrets / gitleaks` and `pr / pr-title`. Run the checks before every pull
+request (Python standard library only):
 
 ```bash
-python -m unittest discover -s tests -v       # standard library only; schema tests skip without the dev tools
-python scripts/check_public_text.py           # wording, email addresses, placeholders, no funding file
+python3 -m unittest discover -s tests -v            # schema tests skip without the dev tools
+python3 scripts/forbidden_words.py --template-mode  # wording, names, e-mail addresses, listed placeholders
+python3 scripts/set_byline.py verify                # README byline, docs/brand/ and NOTICE agree
+python3 scripts/check_workflows.py                  # SHA pins, permissions, triggers
 ```
 
 With the development tools (`requirements-dev.txt`, hash-pinned) in a virtual environment:
 
 ```bash
-python -m venv .venv
-.venv/bin/pip install --require-hashes -r requirements-dev.txt     # Windows: .venv\Scripts\pip ...
-.venv/bin/yamllint -s -c .yamllint.yml labels.yml .github/
-.venv/bin/python scripts/validate.py          # issue forms, chooser config, ruleset against their schemas
+python3 -m venv .venv
+.venv/bin/pip install --require-hashes --only-binary=:all: -r requirements-dev.txt   # Windows: .venv\Scripts\pip ...
+.venv/bin/yamllint --strict .
+.venv/bin/zizmor --offline --min-severity=low .github/workflows
+.venv/bin/python scripts/validate.py          # forms, chooser config, ruleset against their schemas
 .venv/bin/python -m unittest discover -s tests -v
 ```
+
+CI also runs markdownlint (`.markdownlint-cli2.jsonc`) and actionlint.
 
 `scripts/validate.py` downloads the SchemaStore schemas `github-issue-forms` and
 `github-issue-config` and the ruleset request schema from GitHub's OpenAPI description once into
 `.cache/schemas/` (git-ignored). Right before the first push, run
-`python scripts/check_public_text.py --strict`, which also fails while a placeholder from
-[PLACEHOLDERS.md](PLACEHOLDERS.md) is still open.
+`python3 scripts/forbidden_words.py` without `--template-mode`. This is the publish gate that CI
+runs too: it also fails while a placeholder from [PLACEHOLDERS.md](PLACEHOLDERS.md) is still open.
+Reviewed exceptions to the wording check are listed in `.forbidden-words-allow`, each with a
+reason.
+
+### Files copied from the template
+
+`scripts/forbidden_words.py`, `scripts/set_byline.py`, `scripts/check_workflows.py`,
+`scripts/check_pr_title.py`, `.github/workflows/pr-title.yml`,
+`.github/workflows/reusable-ci.yml`, `.github/workflows/reusable-gitleaks.yml` and
+`.gitleaks.toml` are byte-for-byte copies from `luminare-dev/oss-template`, so this repository
+follows the same rules as every other one. `tests/test_template_copies.py` records the source
+commit and pins each file's sha256. `.github/workflows/ci.yml` differs from the template only in
+its test command. To update, copy the files again from the template, then update the commit and
+the hashes in that test.
 
 ## Licence
 

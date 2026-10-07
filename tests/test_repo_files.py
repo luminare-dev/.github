@@ -7,17 +7,19 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
-_spec = importlib.util.spec_from_file_location("check_public_text", ROOT / "scripts" / "check_public_text.py")
-check_public_text = importlib.util.module_from_spec(_spec)
-sys.modules["check_public_text"] = check_public_text
-_spec.loader.exec_module(check_public_text)
+_spec = importlib.util.spec_from_file_location("forbidden_words", ROOT / "scripts" / "forbidden_words.py")
+forbidden_words = importlib.util.module_from_spec(_spec)
+sys.modules["forbidden_words"] = forbidden_words
+_spec.loader.exec_module(forbidden_words)
 
 SECRETS_BOX = "I removed all secrets, tokens, licence keys, IPs and player data."
 
@@ -30,7 +32,7 @@ class TestLayout(unittest.TestCase):
     def test_files_sit_where_github_reads_them(self):
         # docs.github.com "Creating a default community health file" (checked 2026-10-06):
         # issue templates and config in .github/ISSUE_TEMPLATE; VULNERABILITY_REPORT.yml and
-        # FUNDING.yml only in .github/; the others in the root, .github/ or docs/.
+        # FUNDING.yml only in .github/; the others in the root, .github/ or docs/.  (rule-text)
         # The organization profile is profile/README.md in the public .github repository.
         for rel in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md",
                     ".github/ISSUE_TEMPLATE/bug_report.yml", ".github/ISSUE_TEMPLATE/feature_request.yml",
@@ -42,7 +44,7 @@ class TestLayout(unittest.TestCase):
             self.assertTrue((ROOT / rel).is_file(), rel)
 
     def test_no_funding_file_anywhere(self):  # rule-text
-        hits = [p for p in ROOT.rglob("*") if ".git" not in p.parts and re.fullmatch(r"(?i)funding\.ya?ml", p.name)]
+        hits = [p for p in ROOT.rglob("*") if ".git" not in p.parts and re.fullmatch(r"(?i)funding\.ya?ml", p.name)]  # rule-text
         self.assertEqual(hits, [])
 
     def test_one_copy_of_each_health_file(self):
@@ -109,9 +111,26 @@ class TestRuleset(unittest.TestCase):
 
 
 class TestPublicText(unittest.TestCase):
-    def test_repository_passes_the_public_text_check(self):
-        errors, _ = check_public_text.check(ROOT)
-        self.assertEqual(errors, [])
+    """scripts/forbidden_words.py, the organization's wording check (copied from the template)."""
+
+    def run_check(self, root: Path, **kw):
+        with mock.patch.dict(os.environ, {"GITHUB_REPOSITORY": "luminare-dev/.github"}):
+            return forbidden_words.run(root, **kw)
+
+    def test_repository_passes_in_template_mode(self):
+        report = self.run_check(ROOT, template_mode=True)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])  # also: no stale .forbidden-words-allow entry
+
+    def test_publish_gate_finds_only_the_listed_placeholders(self):
+        # Before the push the only findings are the open placeholders; once they are filled in,
+        # the publish gate (the CI step outside template mode) is clean.
+        listed = set(forbidden_words.PLACEHOLDER_RE.findall(read("PLACEHOLDERS.md")))
+        self.assertTrue(listed)
+        for error in self.run_check(ROOT, template_mode=False).errors:
+            m = re.search(r"unfilled placeholder \{\{(\w+)\}\}", error)
+            self.assertIsNotNone(m, error)
+            self.assertIn(m.group(1), listed, error)
 
     def test_checker_catches_problems(self):
         # Built from pieces so that this test file itself passes the repository-wide check.
@@ -122,26 +141,18 @@ class TestPublicText(unittest.TestCase):
             (root / ".github").mkdir()
             (root / ".github" / "FUNDING.yml").write_text("github: [x]\n", encoding="utf-8")  # rule-text
             (root / "README.md").write_text(
-                "Pro version coming soon, see our store.\n"  # rule-text
+                "Pro version coming soon, see our web shop.\n"  # rule-text
                 f"Contact {bad_mail}\n"
                 f"Hello {bad_placeholder}\n"
-                "Not affiliated with or endorsed by anyone. Restore the storage.\n", encoding="utf-8")
-            errors, _ = check_public_text.check(root)
-            joined = "\n".join(errors)
-            self.assertIn("FUNDING file", joined)  # rule-text
-            self.assertIn("'Pro version'", joined)  # rule-text
-            self.assertIn("'coming soon'", joined)  # rule-text
-            self.assertIn("'store'", joined)  # rule-text
+                "Not affiliated with or endorsed by anyone. Keep the token in a key-value store.\n",
+                encoding="utf-8")
+            joined = "\n".join(self.run_check(root, template_mode=True).errors)
+            for rule in ("[pro-version]", "[coming-soon]", "[shop-store]", "funding file"):  # rule-text
+                self.assertIn(rule, joined)
             self.assertIn(bad_mail, joined)
             self.assertIn("UNLISTED", joined)
             self.assertNotIn("affiliated", joined)
-            self.assertNotIn("Restore", joined)
-
-    def test_strict_mode_fails_on_open_placeholders(self):
-        errors, warnings = check_public_text.check(ROOT, strict=False)
-        self.assertTrue(any("AUTHOR_NAME" in w for w in warnings))
-        errors, _ = check_public_text.check(ROOT, strict=True)
-        self.assertTrue(any("AUTHOR_NAME" in e for e in errors))
+            self.assertNotIn("key-value store", joined)
 
 
 class TestProfile(unittest.TestCase):

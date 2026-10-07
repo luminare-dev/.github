@@ -56,14 +56,14 @@ the GitHub interface, because the documentation does not settle them.
 ([docs](https://docs.github.com/en/organizations/managing-organization-settings/creating-rulesets-for-repositories-in-your-organization)),
 so the branch ruleset is imported per repository (section 3).
 
-**Profile** (Settings → General)
+### Profile (Settings → General)
 
 - [ ] Display name **Luminare Development**, URL `https://luminare.tech`. Leave the public email
       empty, or set `oss@luminare.tech` once it receives mail.
 - [ ] Optional: verify the domain `luminare.tech` (Settings → Verified and approved domains; one
       DNS TXT record). The profile then shows a *Verified* badge.
 
-**People and security**
+### People and security
 
 - [ ] Owner role for the maintainer's personal account. A single owner is a single point of
       failure: keep that account's recovery codes safe.
@@ -73,8 +73,9 @@ so the branch ruleset is imported per repository (section 3).
 - [ ] Member privileges: base permission **Read**; members cannot create, delete, transfer or
       change the visibility of repositories; forking of private repositories off.
 
-**Actions** (Settings → Actions → General)
-([docs](https://docs.github.com/en/organizations/managing-organization-settings/disabling-or-limiting-github-actions-for-your-organization))
+### Actions (Settings → Actions → General)
+
+[Documentation](https://docs.github.com/en/organizations/managing-organization-settings/disabling-or-limiting-github-actions-for-your-organization)
 
 - [ ] Policy **Allow luminare-dev, and select non-luminare-dev, actions and reusable workflows**,
       with **Allow actions created by GitHub** ticked (it covers `actions/*` and `github/*`) and
@@ -89,7 +90,7 @@ so the branch ruleset is imported per repository (section 3).
       job). New organizations do not allow this by default, and new repositories inherit the
       organization's setting.
 
-**Code security** (Settings → Advanced Security → Configurations)
+### Code security (Settings → Advanced Security → Configurations)
 
 - [ ] Apply one security configuration to all repositories, and as the default for new ones:
       Dependabot alerts and security updates, secret scanning, push protection, private
@@ -98,7 +99,7 @@ so the branch ruleset is imported per repository (section 3).
       ([docs](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security));
       private repositories rely on the gitleaks check in CI.
 
-**Community**
+### Community
 
 - [ ] **Discussions** for the organization, with `.github` as the source repository, categories
       *Announcements*, *Q&A*, *Ideas* and *Show and tell*. The issue chooser and `SUPPORT.md`
@@ -111,7 +112,7 @@ so the branch ruleset is imported per repository (section 3).
 
 ## 3. Every public repository
 
-**General**
+### General
 
 - [ ] `LICENSE` with an SPDX licence, `NOTICE`, and a README built from the template.
 - [ ] Description, website (the project page), topics. Platform names belong in the description
@@ -131,7 +132,7 @@ so the branch ruleset is imported per repository (section 3).
       opened with `GITHUB_TOKEN` start no workflows, so the required checks would never report
       (template `PUBLISHING.md`, part C).
 
-**Security** (Settings → Advanced Security)
+### Security (Settings → Advanced Security)
 
 - [ ] Private vulnerability reporting **on**.
       ([docs](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configure-for-a-repository))
@@ -139,7 +140,7 @@ so the branch ruleset is imported per repository (section 3).
 - [ ] Secret scanning and **push protection on**.
 - [ ] Code scanning default setup on, where the repository contains a supported language.
 
-**Branch ruleset** (Settings → Rules → Rulesets → New ruleset → **Import a ruleset**)
+### Branch ruleset (Settings → Rules → Rulesets → New ruleset → Import a ruleset)
 
 - [ ] Import [`rulesets/main.json`](rulesets/main.json). It protects the default branch: pull
       request required (0 approvals, so a single maintainer can merge; conversations resolved;
@@ -153,7 +154,7 @@ so the branch ruleset is imported per repository (section 3).
       in a repository without these workflows, remove the *Require status checks to pass* rule
       in the form and add it back once the checks have run.
 
-**Labels and triage**
+### Labels and triage
 
 - [ ] Run `python scripts/sync_labels.py --repo luminare-dev/<repo>` (dry run), then again with
       `--apply` (README.md, "Labels").

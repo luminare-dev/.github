@@ -24,7 +24,7 @@ Before 1.0.0 the same rule applies: only the latest 0.x minor release is support
    **Security** tab and click **Report a vulnerability**. The direct link is
    `https://github.com/luminare-dev/<repository>/security/advisories/new`. Only the maintainers can
    see the report.
-2. **Fallback: email security@luminare.tech**, if private reporting is not available for that
+2. **Fallback: email <security@luminare.tech>**, if private reporting is not available for that
    repository or you cannot use GitHub. Name the repository in the subject line.
 
 Please include:
