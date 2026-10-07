@@ -77,16 +77,17 @@ so the branch ruleset is imported per repository (section 3).
 ([docs](https://docs.github.com/en/organizations/managing-organization-settings/disabling-or-limiting-github-actions-for-your-organization))
 
 - [ ] Policy **Allow luminare-dev, and select non-luminare-dev, actions and reusable workflows**,
-      with **Allow actions created by GitHub** ticked and the third-party actions that the
-      template workflows use listed explicitly (for example
-      `googleapis/release-please-action@*, ossf/scorecard-action@*`). ⚠ Take the final list from
-      the template repository's workflows.
+      with **Allow actions created by GitHub** ticked (it covers `actions/*` and `github/*`) and
+      the third-party actions of the template workflows listed explicitly:
+      `googleapis/release-please-action@*, ossf/scorecard-action@*, DavidAnson/markdownlint-cli2-action@*`.
+      When a template workflow adds a third-party action, add it here.
 - [ ] **Require actions to be pinned to a full-length commit SHA.**
 - [ ] Fork pull request workflows: **Require approval for all external contributors**.
-- [ ] Workflow permissions: **Read repository contents and packages permissions**. Allow GitHub
-      Actions to create pull requests only if the release workflow opens its release pull
-      requests with the default `GITHUB_TOKEN`. ⚠ Decide together with the template's release
-      workflow.
+- [ ] Workflow permissions: **Read repository contents and packages permissions**, and tick
+      **Allow GitHub Actions to create and approve pull requests** (release-please opens its
+      release pull request with `GITHUB_TOKEN`; each workflow asks for write permissions per
+      job). New organizations do not allow this by default, and new repositories inherit the
+      organization's setting.
 
 **Code security** (Settings → Advanced Security → Configurations)
 
@@ -124,7 +125,11 @@ so the branch ruleset is imported per repository (section 3).
       commit details** (keeps the `Signed-off-by` lines), *Always suggest updating pull request
       branches* and *Automatically delete head branches* on.
 - [ ] Releases: turn on **immutable releases** (tags and assets cannot change after
-      publication). ⚠ Check that the release workflow attaches every asset before it publishes.
+      publication). The template's release workflow creates a draft release, attaches every file
+      and publishes last, which is the order immutable releases need.
+- [ ] Release pull requests: **close and reopen** each one once before merging. Pull requests
+      opened with `GITHUB_TOKEN` start no workflows, so the required checks would never report
+      (template `PUBLISHING.md`, part C).
 
 **Security** (Settings → Advanced Security)
 
@@ -140,11 +145,13 @@ so the branch ruleset is imported per repository (section 3).
       request required (0 approvals, so a single maintainer can merge; conversations resolved;
       squash only), required status checks, no force-push, no deletion, no bypass.
 - [ ] Before importing, make sure each required check name matches a check that already ran on
-      a pull request in that repository: `lint-test` and `gitleaks` (GitHub Actions, app ID
-      15368) and `DCO` (app ID 1861). Edit the names in the ruleset form if the CI jobs are named
-      differently. A required check that never reports blocks every merge. For a repository
-      without CI yet (this one, until it gets the template workflows), remove the *Require status
-      checks to pass* rule in the form and add it back later.
+      a pull request in that repository: `ci / lint-test`, `secrets / gitleaks` and
+      `pr / pr-title` (GitHub Actions, app ID 15368) and `DCO` (app ID 1861). Reusable workflows
+      report as `<caller job> / <called job>`; renaming the caller jobs in `ci.yml` or
+      `pr-title.yml` changes these names. Edit the names in the ruleset form if a repository's
+      CI jobs are named differently. A required check that never reports blocks every merge, so
+      in a repository without these workflows, remove the *Require status checks to pass* rule
+      in the form and add it back once the checks have run.
 
 **Labels and triage**
 

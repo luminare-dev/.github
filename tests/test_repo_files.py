@@ -101,7 +101,11 @@ class TestRuleset(unittest.TestCase):
         pr = next(r for r in data["rules"] if r["type"] == "pull_request")["parameters"]
         self.assertEqual(pr["allowed_merge_methods"], ["squash"])
         checks = next(r for r in data["rules"] if r["type"] == "required_status_checks")["parameters"]
-        self.assertTrue(checks["required_status_checks"])
+        # Reusable workflows report as "<caller job> / <called job>": the caller jobs ci, secrets
+        # and pr in the template's ci.yml and pr-title.yml. 15368 = GitHub Actions, 1861 = DCO app.
+        self.assertEqual({(c["context"], c["integration_id"]) for c in checks["required_status_checks"]},
+                         {("ci / lint-test", 15368), ("secrets / gitleaks", 15368), ("pr / pr-title", 15368),
+                          ("DCO", 1861)})
 
 
 class TestPublicText(unittest.TestCase):

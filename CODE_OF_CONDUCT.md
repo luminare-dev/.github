@@ -1,4 +1,4 @@
-<!-- Source: https://www.contributor-covenant.org/version/3/0/code_of_conduct/code_of_conduct.md (retrieved 2026-10-06; identical to EthicalSource/contributor_covenant, release branch, content/version/3/0/code_of_conduct.md, commit d379fc9). Licence of this file: CC BY-SA 4.0. -->
+<!-- Source: https://www.contributor-covenant.org/version/3/0/code_of_conduct/code_of_conduct.md (retrieved 2026-10-06; text identical to EthicalSource/contributor_covenant, release branch, content/version/3/0/code_of_conduct.md at d379fc9, without its Hugo front matter). Licence of this file: CC BY-SA 4.0. -->
 
 # Contributor Covenant 3.0 Code of Conduct
 

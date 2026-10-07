@@ -70,10 +70,10 @@ On Windows (PowerShell): `$env:GITHUB_TOKEN = "..."; py scripts\sync_labels.py -
 [`rulesets/main.json`](rulesets/main.json) is a repository ruleset in the format GitHub exports
 and imports (Settings → Rules → Rulesets → New ruleset → Import a ruleset). It targets the
 default branch and requires a pull request (no approval needed, conversations resolved, squash
-merge only) and the status checks `lint-test`, `gitleaks` and `DCO`; it blocks force-pushes and
-deletion, with no bypass. Organization-wide rulesets need a paid plan, so it is imported per
-repository. Read [SETTINGS.md](SETTINGS.md), section 3, before importing: the check names must
-match checks that actually run in that repository.
+merge only) and the status checks `ci / lint-test`, `secrets / gitleaks`, `pr / pr-title` and
+`DCO`; it blocks force-pushes and deletion, with no bypass. Organization-wide rulesets need GitHub
+Team or Enterprise, so it is imported per repository. Read [SETTINGS.md](SETTINGS.md), section 3,
+before importing: the check names must match checks that actually run in that repository.
 
 ## Development
 

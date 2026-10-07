@@ -24,7 +24,8 @@ its own `CONTRIBUTING.md`, if it has one). That section names:
 - the one command that runs the linters and tests (the same command CI runs);
 - any extra checks, for example Molecule scenarios or rule tests.
 
-Run that command before you push. A pull request is reviewed once CI is green.
+Run that command before you push. A pull request is reviewed once CI is green. For contributors
+outside the organization, a maintainer starts the CI run after a first look.
 
 ## Commit messages: Conventional Commits
 
@@ -40,19 +41,34 @@ version numbers are generated from them, so the type matters.
 Signed-off-by: Your Name <you@example.com>
 ```
 
-| Type | Use it for | Release effect |
-|---|---|---|
-| `feat` | a new feature | minor version |
-| `fix` | a bug fix | patch version |
-| `docs` | documentation only | none |
-| `refactor`, `perf`, `test`, `style` | code changes that do not change behaviour | none |
-| `build`, `ci`, `chore` | build system, CI, maintenance | none |
-| `revert` | reverting an earlier commit | depends |
+| Type | Use it for | Changelog section | Release effect |
+|---|---|---|---|
+| `feat` | a new feature | Added | minor version |
+| `fix` | a bug fix | Fixed | patch version |
+| `perf` | a performance improvement without a change in behaviour | Changed | patch version |
+| `security` | the fix for a security problem, used once the advisory is public | Security | patch version |
+| `revert` | reverting an earlier commit | Reverted | patch version |
+| `docs` | documentation only | not listed | no release on its own |
+| `refactor`, `test`, `style` | code changes that do not change behaviour | not listed | no release on their own |
+| `build`, `ci`, `chore` | build system, CI, maintenance | not listed | no release on their own |
 
 A breaking change adds `!` after the type (`feat!: drop support for …`) or a
-`BREAKING CHANGE:` footer. Pull requests are squash-merged, so **the pull request title becomes the
-commit message** and must follow the same format. Do not edit `CHANGELOG.md` by hand; the release
-tooling writes it.
+`BREAKING CHANGE:` footer. It means a major version, or a minor version before 1.0.0. The
+sections and release effects are those of the release tooling (release-please) in repositories
+built from the organization's template.
+
+Pull requests are squash-merged, so **the pull request title becomes the commit message** and must
+follow the same format. The `pr / pr-title` check also requires:
+
+- the summary starts with a lower-case letter (an acronym such as `TLS` is fine) and uses the
+  imperative: "add", not "added";
+- no full stop at the end;
+- at most 100 characters for the whole title;
+- a scope, if any, in lower case;
+- wording that describes the change only: the title becomes a line of the release notes, so it
+  goes through the same wording check as the repository's files.
+
+Do not edit `CHANGELOG.md` by hand; the release tooling writes it.
 
 ## Developer Certificate of Origin (DCO)
 
