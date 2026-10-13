@@ -9,7 +9,7 @@
 *a [Luminare Development](https://luminare.tech/open-source/) open-source project*
 <!-- /byline:studio -->
 <!-- byline:personal
-*by {{AUTHOR_NAME}} · [project page](https://luminare.tech/open-source/)*
+*by Paul Pasaurek · [project page](https://luminare.tech/open-source/)*
 /byline:personal -->
 <!-- header:end -->
 
@@ -94,7 +94,7 @@ request (Python standard library only):
 
 ```bash
 python3 -m unittest discover -s tests -v            # schema tests skip without the dev tools
-python3 scripts/forbidden_words.py --template-mode  # wording, names, e-mail addresses, listed placeholders
+python3 scripts/forbidden_words.py                  # publish gate: wording, names, e-mail addresses, placeholders
 python3 scripts/set_byline.py verify                # README byline, docs/brand/ and NOTICE agree
 python3 scripts/check_workflows.py                  # SHA pins, permissions, triggers
 ```
@@ -114,9 +114,9 @@ CI also runs markdownlint (`.markdownlint-cli2.jsonc`) and actionlint.
 
 `scripts/validate.py` downloads the SchemaStore schemas `github-issue-forms`,
 `github-issue-config` and `github-discussion` and the ruleset request schema from GitHub's OpenAPI
-description once into `.cache/schemas/` (git-ignored). Right before the first push, run
-`python3 scripts/forbidden_words.py` without `--template-mode`. This is the publish gate that CI
-runs too: it also fails while a placeholder from [PLACEHOLDERS.md](PLACEHOLDERS.md) is still open.
+description once into `.cache/schemas/` (git-ignored). `python3 scripts/forbidden_words.py` runs
+without `--template-mode`, because this repository is not a template: it is the publish gate that
+CI runs too, and it fails on any placeholder (see [PLACEHOLDERS.md](PLACEHOLDERS.md)).
 Reviewed exceptions to the wording check are listed in `.forbidden-words-allow`, each with a
 reason.
 

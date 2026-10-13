@@ -16,7 +16,7 @@ open-source licence (Apache-2.0 or MIT), and is built to be read, reused and imp
 | Project | What it does | Licence | Status |
 |---|---|---|---|
 | [.github](https://github.com/luminare-dev/.github) | Shared contributing guide, code of conduct, security policy, issue forms and labels for every repository here | MIT | available |
-| oss-template | Repository template with community health files, signed-off commits, pinned CI, secret scanning and release automation | MIT | planned |
+| [oss-template](https://github.com/luminare-dev/oss-template) | Repository template with community health files, signed-off commits, pinned CI, secret scanning and release automation | MIT | available |
 | infra-edge-lab | Infrastructure as code that rebuilds a small edge environment from nothing with one command, tested on every change | Apache-2.0 | planned |
 | luminare.infra_edge | Ansible collection for edge hosts: base hardening, an outbound tunnel, a web server and a database | Apache-2.0 | planned |
 | luminare.gameserver | Ansible roles that install, configure, update and back up game servers, for FiveM/RedM servers (FXServer)¹ | Apache-2.0 | planned |

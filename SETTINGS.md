@@ -10,7 +10,8 @@ the GitHub interface, because the documentation does not settle them.
 ## 0. Before the first push of this repository
 
 - [ ] The role addresses receive mail (section 5): `oss@luminare.tech`, `conduct@luminare.tech`,
-      `security@luminare.tech`. The code of conduct, security policy and profile name them.
+      `security@luminare.tech`, all aliases of the one `hello@luminare.tech` inbox. The code of
+      conduct, security policy and profile name them.
 - [ ] Every placeholder in [PLACEHOLDERS.md](PLACEHOLDERS.md) is filled in.
 - [ ] `https://luminare.tech` answers; the organization profile links to it.
 - [ ] Sections 1 and 2 are done (at least two-factor authentication and the Actions policy).
@@ -195,13 +196,16 @@ Delete the test repository after the last test.
 
 ## 5. Role addresses
 
-Created on the `luminare.tech` mail server by the maintainer, then tested by sending a message
+All addresses deliver into **one inbox**, `hello@luminare.tech`, which only the maintainer reads.
+The role addresses are aliases of it, so a report never depends on a second mailbox. They are
+created on the `luminare.tech` mail server by the maintainer, then tested by sending a message
 from an outside address to each one.
 
 | Address | Type | Delivers to | Used in |
 |---|---|---|---|
-| `oss@luminare.tech` | mailbox, or alias to the maintainer's inbox | the maintainer | profile, `SUPPORT.md` |
-| `conduct@luminare.tech` | alias | `oss@luminare.tech` | `CODE_OF_CONDUCT.md` |
-| `security@luminare.tech` | alias | `oss@luminare.tech` | `SECURITY.md` (fallback) |
+| `hello@luminare.tech` | mailbox | the maintainer | general contact on the studio website |
+| `oss@luminare.tech` | alias | `hello@luminare.tech` | profile, `SUPPORT.md`, `ACCESSIBILITY.md` |
+| `conduct@luminare.tech` | alias | `hello@luminare.tech` | `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SUPPORT.md` |
+| `security@luminare.tech` | alias | `hello@luminare.tech` | `SECURITY.md` (fallback) |
 
 Mail to these addresses is never answered with private support; see `SUPPORT.md`.

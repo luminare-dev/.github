@@ -7,3 +7,5 @@
 scripts/forbidden_words.py | * | the check's own rule list, its documentation and the usage examples
 scripts/set_byline.py | placeholder | prints the names of the placeholders to fill again after a brand swap
 LICENSE | sell | the MIT licence grants the right to "sell copies" of the software
+SETTINGS.md | hello@luminare.tech | the organization's one inbox, which the oss@, conduct@ and security@ aliases deliver to (section 5)
+PLACEHOLDERS.md | hello@luminare.tech | names the one inbox that the role aliases deliver to
