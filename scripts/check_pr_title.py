@@ -7,7 +7,7 @@ release-please builds the changelog and release notes from it. The title must th
   * pass the wording check from scripts/forbidden_words.py (offer-free release notes).
 
 Usage: python3 scripts/check_pr_title.py "feat(backup): add a restore drill"
-       PR_TITLE="..." python3 scripts/check_pr_title.py      (how CI calls it)
+       PR_TITLE="..." PR_AUTHOR="login" python3 scripts/check_pr_title.py      (how CI calls it)
 Exit codes: 0 ok, 1 rejected, 2 no title given.
 """
 
@@ -26,9 +26,12 @@ from forbidden_words import check_string  # noqa: E402
 TYPES = ("feat", "fix", "docs", "refactor", "perf", "test", "style", "build", "ci", "chore", "revert", "security")
 TITLE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\((?P<scope>[a-z0-9][a-z0-9._/-]*)\))?(?P<bang>!)?: (?P<subject>\S.*)$")
 MAX_LENGTH = 100
+# Bots whose titles follow Conventional Commits but start the summary with a capital ("Bump ...").
+# Only the lower-case rule is relaxed for them; format, types, length and wording still apply.
+CAPITALISED_SUMMARY_OK = ("dependabot[bot]",)
 
 
-def problems(title: str) -> list[str]:
+def problems(title: str, author: str = "") -> list[str]:
     title = title.strip()
     out: list[str] = []
     m = TITLE_RE.match(title)
@@ -41,7 +44,8 @@ def problems(title: str) -> list[str]:
         subject = m.group("subject")
         if subject.endswith("."):
             out.append("the summary must not end with a full stop")
-        if subject[:1].isupper() and not subject.split()[0].isupper():
+        if (subject[:1].isupper() and not subject.split()[0].isupper()
+                and author not in CAPITALISED_SUMMARY_OK):
             out.append("the summary must start with a lower-case letter (imperative mood: 'add', 'fix')")
     if len(title) > MAX_LENGTH:
         out.append(f"the title is {len(title)} characters long; keep it to {MAX_LENGTH}")
@@ -55,7 +59,7 @@ def main(argv: list[str] | None = None) -> int:
     if not title.strip():
         print("error: no pull request title given", file=sys.stderr)
         return 2
-    found = problems(title)
+    found = problems(title, os.environ.get("PR_AUTHOR", ""))
     for prob in found:
         print(f"error: {prob}")
     if not found:
