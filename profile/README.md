@@ -8,8 +8,9 @@
 <!-- header:end -->
 
 Luminare Development publishes open-source projects for infrastructure automation, observability
-and developer tooling. Every project comes with its code, tests, documentation and an
-open-source licence (Apache-2.0 or MIT), and is built to be read, reused and improved.
+and developer tooling, and themes for existing self-hosted tools. Every project comes with its
+code, tests, documentation and an open-source licence (Apache-2.0 or MIT), and is built to be
+read, reused and improved.
 
 ## Projects
 
@@ -17,14 +18,20 @@ open-source licence (Apache-2.0 or MIT), and is built to be read, reused and imp
 |---|---|---|---|
 | [.github](https://github.com/luminare-dev/.github) | Shared contributing guide, code of conduct, security policy, issue forms and labels for every repository here | MIT | available |
 | [oss-template](https://github.com/luminare-dev/oss-template) | Repository template with community health files, signed-off commits, pinned CI, secret scanning and release automation | MIT | available |
+| [lumen-panel](https://github.com/luminare-dev/lumen-panel) | Two themes, Lumen and Lumen Dark, with a command palette (Ctrl+K), built on the server from the panel's own default theme, for the KeyHelp hosting panel¹ | MIT | available |
+| [lumen-mail](https://github.com/luminare-dev/lumen-mail) | A skin that extends Elastic, compiled on the server from the Elastic sources installed there, with a command palette (Ctrl+K), for Roundcube Webmail² | MIT | available |
 | [infra-edge-lab](https://github.com/luminare-dev/infra-edge-lab) | Infrastructure as code that rebuilds a small edge environment from nothing with one command, tested on every change | Apache-2.0 | available |
 | [luminare.infra_edge](https://github.com/luminare-dev/ansible-collection-infra_edge) | Ansible collection for edge hosts: base hardening, an outbound tunnel, a web server and a database | Apache-2.0 | available |
-| [luminare.gameserver](https://github.com/luminare-dev/ansible-collection-gameserver) | Ansible roles that install, configure, update and back up game servers, for FiveM/RedM servers (FXServer)¹ | Apache-2.0 | available |
-| [gameserver-observability](https://github.com/luminare-dev/gameserver-observability) | Metrics, dashboards and alerts collected from outside the server process, for FiveM/RedM servers (FXServer)¹ | Apache-2.0 | available |
+| [luminare.gameserver](https://github.com/luminare-dev/ansible-collection-gameserver) | Ansible roles that install, configure, update and back up game servers, for FiveM/RedM servers (FXServer)³ | Apache-2.0 | available |
+| [gameserver-observability](https://github.com/luminare-dev/gameserver-observability) | Metrics, dashboards and alerts collected from outside the server process, for FiveM/RedM servers (FXServer)³ | Apache-2.0 | available |
 
 Planned projects get a link here when their first release is public.
 
-¹ Not affiliated with or endorsed by Cfx.re, Rockstar Games or Take-Two.
+¹ KeyHelp is a registered trademark of Keyweb AG; not affiliated with or endorsed by Keyweb AG.
+
+² Not affiliated with or endorsed by the Roundcube project.
+
+³ Not affiliated with or endorsed by Cfx.re, Rockstar Games or Take-Two.
 
 ## Taking part
 
