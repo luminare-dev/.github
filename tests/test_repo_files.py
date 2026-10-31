@@ -30,17 +30,13 @@ def read(rel: str) -> str:
 
 class TestLayout(unittest.TestCase):
     def test_files_sit_where_github_reads_them(self):
-        # docs.github.com "Creating a default community health file" (checked 2026-10-07):
-        # issue templates and config in .github/ISSUE_TEMPLATE; discussion category forms in
-        # .github/DISCUSSION_TEMPLATE, named after the category slug; VULNERABILITY_REPORT.yml and
-        # FUNDING.yml only in .github/; the others in the root, .github/ or docs/.  # rule-text
-        # The organization profile is profile/README.md in the public .github repository.
+        # Paths GitHub reads default community health files and the org profile from.
         for rel in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md", "ACCESSIBILITY.md",
                     ".github/DISCUSSION_TEMPLATE/q-a.yml", ".github/DISCUSSION_TEMPLATE/ideas.yml",
                     ".github/ISSUE_TEMPLATE/bug_report.yml", ".github/ISSUE_TEMPLATE/feature_request.yml",
                     ".github/ISSUE_TEMPLATE/config.yml", ".github/PULL_REQUEST_TEMPLATE.md",
                     ".github/VULNERABILITY_REPORT.yml", "profile/README.md", "LICENSE", "NOTICE",
-                    "PLACEHOLDERS.md", "SETTINGS.md", "labels.yml", "rulesets/main.json",
+                    "labels.yml", "rulesets/main.json",
                     "docs/brand/readme-header-dark.svg", "docs/brand/readme-header-light.svg",
                     "docs/brand/social-preview-1280x640.png", "docs/brand/KIT_VERSION"):
             self.assertTrue((ROOT / rel).is_file(), rel)
@@ -128,15 +124,8 @@ class TestPublicText(unittest.TestCase):
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])  # also: no stale .forbidden-words-allow entry
 
-    def test_publish_gate_finds_only_the_listed_placeholders(self):
-        # Before the push the only findings are the open placeholders; once they are filled in,
-        # the publish gate (the CI step outside template mode) is clean.
-        listed = set(forbidden_words.PLACEHOLDER_RE.findall(read("PLACEHOLDERS.md")))
-        self.assertTrue(listed)
-        for error in self.run_check(ROOT, template_mode=False).errors:
-            m = re.search(r"unfilled placeholder \{\{(\w+)\}\}", error)
-            self.assertIsNotNone(m, error)
-            self.assertIn(m.group(1), listed, error)
+    def test_publish_gate_is_clean(self):
+        self.assertEqual(self.run_check(ROOT, template_mode=False).errors, [])
 
     def test_checker_catches_problems(self):
         # Built from pieces so that this test file itself passes the repository-wide check.
@@ -184,8 +173,7 @@ class TestProfile(unittest.TestCase):
         self.assertIn("variant: studio", read("docs/brand/KIT_VERSION"))
 
     def test_profile_header_block(self):
-        # The header sits between oss-template's markers (07's project-page sync drops the block).
-        # The org profile has no byline (brand-repos repos.yaml: byline: false).
+        # The org profile has a header block but no byline.
         text = read("profile/README.md")
         self.assertTrue(text.startswith("<!-- header:begin"), "the profile must start with the header block")
         header = text[:text.index("<!-- header:end -->") + len("<!-- header:end -->")]
