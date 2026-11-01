@@ -14,8 +14,9 @@ is not possible, email <security@luminare.tech> with the repository name in the 
 Include the version or commit, what the problem is, and steps to reproduce. Redact real secrets
 and personal data.
 
-I aim to reply within 14 days (best effort), fix the issue, and publish an advisory with the
-release, crediting you unless you prefer otherwise. There is no bug bounty.
+I aim to reply within 14 days (best effort), fix the issue, and publish an advisory (with a CVE
+where appropriate) with the release, crediting you unless you prefer otherwise. There is no bug
+bounty.
 
 Out of scope: bugs in third-party software a project only installs or monitors (report them
 upstream), and scanner output without a demonstrated impact.

@@ -9,7 +9,7 @@ This applies to every [luminare-dev](https://github.com/luminare-dev) repository
   interface). Small fixes can go straight to a pull request.
 - Each repository's README explains how to run its tests. Run them before you push.
 
-## Commits and pull requests
+## Pull requests
 
 Pull requests are squash-merged, so the title becomes the commit message and a changelog line.
 It must follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
@@ -23,7 +23,7 @@ fix(backup): retry the upload after a timeout
 `refactor`, `test`, `style`, `build`, `ci` and `chore` do not release on their own. A breaking
 change adds `!` (`feat!: ...`). Do not edit `CHANGELOG.md`; release-please writes it.
 
-Keep one topic per pull request and add tests and docs for behaviour changes.
+Keep one topic per pull request. Add or update tests and docs for every behaviour change.
 
 ## Sign-off (DCO)
 
@@ -37,6 +37,8 @@ licensed under the repository's licence.
 Issues, pull requests, logs and screenshots are public. Never post passwords, tokens, keys,
 `.env` files, IP addresses, hostnames or user data; use placeholders like `<redacted>`. If you
 leaked a secret, rotate it right away.
+
+## Response times
 
 Replies are best effort, usually within a week. Everyone follows the
 [Code of Conduct](https://github.com/luminare-dev/.github/blob/main/CODE_OF_CONDUCT.md).
