@@ -1,0 +1,43 @@
+# Weekly updates of the action pins and requirements-dev.txt, 7-day cooldown; patch and minor
+# updates merge on their own (dependabot-automerge.yml).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
+      include: scope
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns: ["*"]
+        update-types: ["major"]
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+      include: scope
+    labels: [dependencies]
+    open-pull-requests-limit: 5
+    groups:
+      dev-tools:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      dev-tools-major:
+        patterns: ["*"]
+        update-types: ["major"]
